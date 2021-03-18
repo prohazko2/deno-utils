@@ -5,7 +5,7 @@
  * MIT Licensed
  */
 
-'use strict';
+"use strict";
 
 /**
  * Module variables.
@@ -34,7 +34,7 @@ export type Options = {
   fixedDecimals?: boolean;
   thousandsSeparator?: string;
   unitSeparator?: string;
-}
+};
 
 /**
  * Convert the given value in bytes into a string or parse to string to an integer in bytes.
@@ -51,12 +51,15 @@ export type Options = {
  * @returns {string|number|null}
  */
 
-export default function bytes(value: string | number, options?: Options): string | number | null {
-  if (typeof value === 'string') {
+export default function bytes(
+  value: string | number,
+  options?: Options,
+): string | number | null {
+  if (typeof value === "string") {
     return parse(value);
   }
 
-  if (typeof value === 'number') {
+  if (typeof value === "number") {
     return format(value, options);
   }
 
@@ -87,25 +90,27 @@ export function format(value: number, options?: Options): string | null {
   }
 
   var mag = Math.abs(value);
-  var thousandsSeparator = (options && options.thousandsSeparator) || '';
-  var unitSeparator = (options && options.unitSeparator) || '';
-  var decimalPlaces = (options && options.decimalPlaces !== undefined) ? options.decimalPlaces : 2;
+  var thousandsSeparator = (options && options.thousandsSeparator) || "";
+  var unitSeparator = (options && options.unitSeparator) || "";
+  var decimalPlaces = (options && options.decimalPlaces !== undefined)
+    ? options.decimalPlaces
+    : 2;
   var fixedDecimals = Boolean(options && options.fixedDecimals);
-  var unit = (options && options.unit) || '';
+  var unit = (options && options.unit) || "";
 
   if (!unit || !map[unit.toLowerCase()]) {
     if (mag >= map.pb) {
-      unit = 'PB';
+      unit = "PB";
     } else if (mag >= map.tb) {
-      unit = 'TB';
+      unit = "TB";
     } else if (mag >= map.gb) {
-      unit = 'GB';
+      unit = "GB";
     } else if (mag >= map.mb) {
-      unit = 'MB';
+      unit = "MB";
     } else if (mag >= map.kb) {
-      unit = 'KB';
+      unit = "KB";
     } else {
-      unit = 'B';
+      unit = "B";
     }
   }
 
@@ -113,7 +118,7 @@ export function format(value: number, options?: Options): string | null {
   var str = val.toFixed(decimalPlaces);
 
   if (!fixedDecimals) {
-    str = str.replace(formatDecimalsRegExp, '$1');
+    str = str.replace(formatDecimalsRegExp, "$1");
   }
 
   if (thousandsSeparator) {
@@ -135,23 +140,23 @@ export function format(value: number, options?: Options): string | null {
  */
 
 export function parse(val: string): number | null {
-  if (typeof val === 'number' && !isNaN(val)) {
+  if (typeof val === "number" && !isNaN(val)) {
     return val;
   }
 
-  if (typeof val !== 'string') {
+  if (typeof val !== "string") {
     return null;
   }
 
   // Test if the string passed is valid
   var results = parseRegExp.exec(val);
   var floatValue;
-  var unit = 'b';
+  var unit = "b";
 
   if (!results) {
     // Nothing could be extracted from the given string
     floatValue = parseInt(val, 10);
-    unit = 'b'
+    unit = "b";
   } else {
     // Retrieve the value and the unit
     floatValue = parseFloat(results[1]);
