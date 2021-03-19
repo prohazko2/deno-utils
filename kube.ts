@@ -20,9 +20,28 @@ import type {
   ServiceList,
 } from "https://deno.land/x/kubernetes_apis@v0.3.0/builtin/core@v1/mod.ts";
 
-class CliOpts {
+type CliOpts = {
+  allNamespaces?: boolean;
+  jsonPath?: string;
   context?: string;
   namespace?: string;
+  labels?: Record<string, string | boolean>;
+};
+
+export async function getMasterIp(opts?: CliOpts) {
+  opts = {
+    ...opts || {},
+    jsonPath: "{..status.addresses}",
+    labels: {
+      ...(opts && opts.labels || {}),
+      "node-role.kubernetes.io/master": true,
+    },
+  };
+  const addresses = await _raw<{ address: string; type: string }[]>(
+    `get nodes`,
+    opts,
+  );
+  return addresses.find(({ type }) => type === "InternalIP")?.address;
 }
 
 export function getNodes(opts?: CliOpts): Promise<Node[]> {
@@ -37,18 +56,55 @@ export function getServices(opts?: CliOpts): Promise<Service[]> {
   return _raw<ServiceList>(`get services`, opts).then(({ items }) => items);
 }
 
+function stringifySelector(selector: Record<string, string | boolean>) {
+  return Object.entries(selector).map(([k, v]) => {
+    let op = "==";
+    if (v === true) {
+      v = "";
+    }
+    if (v === false) {
+      v = "";
+      op = "!=";
+    }
+    return `${k}${op}${v}`;
+  }).join(",");
+}
+
+function tryParseJsonVeryHard<T = unknown>(json: string) {
+  let err: SyntaxError;
+  try {
+    return JSON.parse(json) as T;
+  } catch (e) {
+    err = e;
+  }
+
+  const [, position] = err.message.split(" at position ");
+  return JSON.parse(json.slice(0, +position)) as T;
+}
+
 export async function _raw<T = unknown>(cmd: string, opts?: CliOpts) {
   const ctx: string[] = [];
+  let output = "json";
 
+  if (opts?.jsonPath) {
+    output = `jsonpath=${opts?.jsonPath}`;
+  }
   if (opts?.context) {
     ctx.push(`--context ${opts.context}`);
   }
   if (opts?.namespace) {
     ctx.push(`--namespace ${opts.namespace}`);
   }
+  if (opts?.labels && Object.keys(opts?.labels).length) {
+    ctx.push(`--selector ${stringifySelector(opts.labels)}`);
+  }
 
-  const resp = await exec(`kubectl ${ctx.join(" ")} ${cmd} -o json`, {
-    output: OutputMode.Capture,
-  });
-  return JSON.parse(resp.output) as T;
+  let command = `kubectl ${ctx.join(" ")} ${cmd} -o ${output}`;
+  if (opts?.allNamespaces) {
+    command = `${command} --all-namespaces`;
+  }
+
+  const resp = await exec(command, { output: OutputMode.Capture });
+
+  return tryParseJsonVeryHard(resp.output) as T;
 }
