@@ -27,6 +27,9 @@ type CliOpts = {
   namespace?: string;
   labels?: Record<string, string | boolean>;
 };
+  
+// @TODO: try later with jsonpath 
+//  > kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}'
 
 export async function getMasterIp(opts?: CliOpts) {
   opts = {
