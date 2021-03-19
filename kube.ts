@@ -15,18 +15,18 @@ class CliOpts {
 }
 
 export function getNodes(opts?: CliOpts): Promise<Node[]> {
-  return _exec<NodeList>(`get nodes`, opts).then(({ items }) => items);
+  return _raw<NodeList>(`get nodes`, opts).then(({ items }) => items);
 }
 
 export function getPods(opts?: CliOpts): Promise<Pod[]> {
-  return _exec<PodList>(`get po`, opts).then(({ items }) => items);
+  return _raw<PodList>(`get po`, opts).then(({ items }) => items);
 }
 
 export function getServices(opts?: CliOpts): Promise<Service[]> {
-  return _exec<ServiceList>(`get services`, opts).then(({ items }) => items);
+  return _raw<ServiceList>(`get services`, opts).then(({ items }) => items);
 }
 
-export async function _exec<T = unknown>(cmd: string, opts?: CliOpts) {
+export async function _raw<T = unknown>(cmd: string, opts?: CliOpts) {
   const ctx: string[] = [];
 
   if (opts?.context) {
