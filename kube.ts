@@ -30,10 +30,10 @@ type CliOpts = {
 
 export async function getMasterIp(opts?: CliOpts) {
   opts = {
-    ...opts || {},
+    ...opts ?? {},
     jsonPath: "{..status.addresses}",
     labels: {
-      ...(opts && opts.labels || {}),
+      ...(opts?.labels ?? {}),
       "node-role.kubernetes.io/master": true,
     },
   };
