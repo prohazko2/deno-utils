@@ -1,3 +1,14 @@
+/*
+
+!!!!!!!
+
+It was only created for local hacks with trusted scripts.
+Please never use this in any production environments, since it can easly damage your clusters
+
+!!!!!!!
+
+*/
+
 import { exec, OutputMode } from "https://deno.land/x/exec@0.0.5/mod.ts";
 
 import type {
