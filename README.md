@@ -2,12 +2,12 @@ Collection of miscellaneous utility functions used by me in various [Deno](https
 You can also use them.
 
 ```
-               __
-              / _) ..(deno is pretty cool, I guess)
-     _.----._/ / 
-    /         /
- __/ (  | (  |
-/__.-'|_|--|_|
+ ,  , ,   ,    ..    (deno is pretty cool, I guess)
+ ,   ,  ,  ,  / _) ../   , 
+. ,  _.----._/ /   ,   ,  
+ ,  /         /  ,   ,   , 
+, ,/ (  | (  |  ,  ,   ,  
+ ./.-'|_|--|_|  ,    ,  ,  
 ```
 
 
