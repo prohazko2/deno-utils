@@ -1,4 +1,13 @@
 
+```
+               __
+              / _) ..(deno is pretty cool, I guess)
+     _.----._/ / 
+    /         /
+ __/ (  | (  |
+/__.-'|_|--|_|
+```
+
 Collection of miscellaneous utility functions used by me in various [Deno](https://deno.land/) projects.  
 You can also use them.
 
