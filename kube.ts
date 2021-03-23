@@ -42,7 +42,7 @@ export async function getMasterIp(opts?: Opts) {
   };
   const addresses = await _ctl<{ address: string; type: string }[]>(
     `get nodes`,
-    opts,
+    opts
   );
   return addresses.find(({ type }) => type === "InternalIP")?.address;
 }
@@ -87,10 +87,7 @@ function tryParseJsonVeryHard<T = unknown>(json: string) {
   return JSON.parse(json.slice(0, +position)) as T;
 }
 
-export async function _ctl<T = unknown>(
-  cmd: string,
-  opts?: Opts,
-): Promise<T> {
+export async function _ctl<T = unknown>(cmd: string, opts?: Opts): Promise<T> {
   const args: string[] = [];
   let output = "json";
 
@@ -115,4 +112,37 @@ export async function _ctl<T = unknown>(
   const resp = await exec(command, { output: OutputMode.Capture });
 
   return tryParseJsonVeryHard(resp.output) as T;
+}
+
+export type ApplyResourceStatus = {
+  kind: string;
+  name: string;
+  status: string;
+};
+
+function parseApplyResourceStaus(text: string): ApplyResourceStatus {
+  const [res, status] = text.split(" ");
+  const [kind, name] = res.split("/");
+  return { kind, name, status };
+}
+
+export async function applyResources(yamls: string) {
+  const p = Deno.run({
+    cmd: "kubectl apply -f -".split(" "),
+    stdout: "piped",
+    stdin: "piped",
+  });
+
+  const encoder = new TextEncoder();
+  await p.stdin.write(encoder.encode(yamls));
+  p.stdin.close();
+  
+  const output = await p.output();
+  p.close();
+
+  return new TextDecoder()
+    .decode(output)
+    .split("\n")
+    .filter((x) => !!x)
+    .map(parseApplyResourceStaus);
 }
