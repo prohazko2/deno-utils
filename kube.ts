@@ -9,16 +9,22 @@ Please never use this in any production environments, since it can easly damage 
 
 */
 
-import { exec, OutputMode } from "https://deno.land/x/exec@0.0.5/mod.ts";
+import { exec } from "./exec.ts";
 
 import type {
+  ConfigMap,
   Node,
   NodeList,
   Pod,
   PodList,
+  Secret,
   Service,
   ServiceList,
 } from "https://deno.land/x/kubernetes_apis@v0.3.0/builtin/core@v1/mod.ts";
+
+import type { Deployment } from "https://deno.land/x/kubernetes_apis@v0.3.0/builtin/apps@v1/mod.ts";
+
+export type { ConfigMap, Deployment, Node, Pod, Secret, Service };
 
 export type Opts = {
   allNamespaces?: boolean;
@@ -42,7 +48,7 @@ export async function getMasterIp(opts?: Opts) {
   };
   const addresses = await _ctl<{ address: string; type: string }[]>(
     `get nodes`,
-    opts
+    opts,
   );
   return addresses.find(({ type }) => type === "InternalIP")?.address;
 }
@@ -109,9 +115,9 @@ export async function _ctl<T = unknown>(cmd: string, opts?: Opts): Promise<T> {
     command = `${command} --all-namespaces`;
   }
 
-  const resp = await exec(command, { output: OutputMode.Capture });
+  const resp = await exec(command);
 
-  return tryParseJsonVeryHard(resp.output) as T;
+  return tryParseJsonVeryHard(resp) as T;
 }
 
 export type ApplyResourceStatus = {
@@ -127,22 +133,6 @@ function parseApplyResourceStaus(text: string): ApplyResourceStatus {
 }
 
 export async function applyResources(yamls: string) {
-  const p = Deno.run({
-    cmd: "kubectl apply -f -".split(" "),
-    stdout: "piped",
-    stdin: "piped",
-  });
-
-  const encoder = new TextEncoder();
-  await p.stdin.write(encoder.encode(yamls));
-  p.stdin.close();
-  
-  const output = await p.output();
-  p.close();
-
-  return new TextDecoder()
-    .decode(output)
-    .split("\n")
-    .filter((x) => !!x)
-    .map(parseApplyResourceStaus);
+  const lines = await exec("kubectl apply -f -", yamls);
+  return lines.split("\n").filter((x) => !!x).map(parseApplyResourceStaus);
 }
