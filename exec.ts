@@ -1,5 +1,10 @@
 export class ExecError extends Error {
   code = 0;
+
+  stderr = "";
+  stdout = "";
+  text = "";
+
   signal: number | undefined = undefined;
   cmd: string[] | undefined = undefined;
 
@@ -30,7 +35,6 @@ export async function exec(cmd: string | string[], stdin = "") {
   }
 
   const p = Deno.run(opts);
-
   if (stdin) {
     const encoder = new TextEncoder();
     await p.stdin!.write(encoder.encode(stdin));
@@ -46,14 +50,19 @@ export async function exec(cmd: string | string[], stdin = "") {
 
   if (!status.success) {
     let msg = `process '${cmd.join(" ")}' exited with code ${status.code}`;
-    const resp = new TextDecoder().decode((stderr || stdout)).trim();
-    if (resp) {
-      msg = `${msg}: ${resp}`;
+    const stdoutText = new TextDecoder().decode(stdout);
+    const stderrText = new TextDecoder().decode(stderr);
+    const text = (stdoutText || stderrText).trim();
+    if (text) {
+      msg = `${msg}: ${text}`;
     }
     const err = new ExecError(msg);
     err.code = status.code;
     err.signal = status.signal;
+    err.text = text;
     err.cmd = cmd;
+    err.stdout = stdoutText;
+    err.stderr = stderrText;
     throw err;
   }
 
