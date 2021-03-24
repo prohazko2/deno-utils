@@ -3,13 +3,12 @@ You can also use them.
 
 ```
  ,  , ,   ,    ..    (deno is pretty cool, I guess)
- ,   ,  ,  ,  / _) ../   , 
-. ,  _.----._/ /   ,   ,  
- ,  /         /  ,   ,   , 
-, ,/ (  | (  |  ,  ,   ,  
- ./.-'|_|--|_|  ,    ,  ,  
+ ,   ,  ,  ,  / _) ../   ,
+. ,  _.----._/ /   ,   ,
+ ,  /         /  ,   ,   ,
+, ,/ (  | (  |  ,  ,   ,
+ ./.-'|_|--|_|  ,    ,  ,
 ```
-
 
 ## [get.ts](./get.ts)
 
@@ -29,3 +28,7 @@ There is much better alternative [cloudydeno/deno-kubernetes_client](https://git
 ## [node_http.ts](./node_http.ts)
 
 Minimal types for serverless runtimes that give access to raw `(req, res)` node.js http api
+
+## [exec.ts](./exec.ts)
+
+There are many like it, but this one is mine.
