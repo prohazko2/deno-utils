@@ -47,11 +47,11 @@ export async function getMasterIp(opts?: Opts) {
       "node-role.kubernetes.io/master": true,
     },
   };
-  const addressesText = await _ctl<string>(
-    `get nodes`,
-    opts,
-  );
-  const addresses = tryParseJsonVeryHard(addressesText);
+  const addressesText = await _ctl<string>(`get nodes`, opts);
+  const addresses = tryParseJsonVeryHard(addressesText) as {
+    type: string;
+    address: string;
+  }[];
   return addresses.find(({ type }) => type === "InternalIP")?.address;
 }
 
