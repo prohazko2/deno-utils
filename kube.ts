@@ -26,13 +26,14 @@ import type { Deployment } from "https://deno.land/x/kubernetes_apis@v0.3.0/buil
 
 export type { ConfigMap, Deployment, Node, Pod, Secret, Service };
 
-export type Opts = {
-  allNamespaces?: boolean;
-  jsonPath?: string;
-  context?: string;
-  namespace?: string;
-  labels?: Record<string, string | boolean>;
-};
+export type Opts = Partial<{
+  output: "json" | "yaml" | string;
+  allNamespaces: boolean;
+  jsonPath: string;
+  context: string;
+  namespace: string;
+  labels: Record<string, string | boolean>;
+}>;
 
 // @TODO: try later with jsonpath
 //  > kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}'
@@ -97,6 +98,9 @@ export async function _ctl<T = unknown>(cmd: string, opts?: Opts): Promise<T> {
   const args: string[] = [];
   let output = "json";
 
+  if (opts?.output) {
+    output = opts?.output;
+  }
   if (opts?.jsonPath) {
     output = `jsonpath=${opts?.jsonPath}`;
   }
@@ -134,5 +138,8 @@ function parseApplyResourceStaus(text: string): ApplyResourceStatus {
 
 export async function applyResources(yamls: string) {
   const lines = await exec("kubectl apply -f -", yamls);
-  return lines.split("\n").filter((x) => !!x).map(parseApplyResourceStaus);
+  return lines
+    .split("\n")
+    .filter((x) => !!x)
+    .map(parseApplyResourceStaus);
 }
