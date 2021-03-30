@@ -47,10 +47,11 @@ export async function getMasterIp(opts?: Opts) {
       "node-role.kubernetes.io/master": true,
     },
   };
-  const addresses = await _ctl<{ address: string; type: string }[]>(
+  const addressesText = await _ctl<string>(
     `get nodes`,
     opts,
   );
+  const addresses = tryParseJsonVeryHard(addressesText);
   return addresses.find(({ type }) => type === "InternalIP")?.address;
 }
 
@@ -121,7 +122,11 @@ export async function _ctl<T = unknown>(cmd: string, opts?: Opts): Promise<T> {
 
   const resp = await exec(command);
 
-  return tryParseJsonVeryHard(resp) as T;
+  if (output === "json") {
+    return tryParseJsonVeryHard(resp) as T;
+  }
+
+  return (resp as any) as T;
 }
 
 export type ApplyResourceStatus = {
