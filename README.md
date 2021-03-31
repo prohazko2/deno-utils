@@ -5,7 +5,7 @@ Collection of miscellaneous utility functions used by me in various
 You can also use them.
 
 ```
-,  , ,   ,    ..    (deno is pretty cool, I guess)
+ ,  , ,   ,    ..    (deno is pretty cool, I guess)
  ,   ,  ,  ,  / _) ../   ,
 . ,  _.----._/ /   ,   ,
  ,  /         /  ,   ,   ,
@@ -33,9 +33,8 @@ node.js http api
 
 ## [kube.ts](./kube.ts)
 
-Wrap around [Kubernetes CLI](https://kubernetes.io/docs/reference/kubectl/) 
-:warning: It was only created for local hacks with trusted scripts.
-Please never use this in any production environments, since it can easly damage
-your clusters.
+Wrap around [Kubernetes CLI](https://kubernetes.io/docs/reference/kubectl/)  
+:warning: It was only created for local hacks with trusted scripts.  
+Please never use this in any production environments, since it can easly damage your clusters.  
 There is much better alternative
 [cloudydeno/deno-kubernetes_client](https://github.com/cloudydeno/deno-kubernetes_client)
