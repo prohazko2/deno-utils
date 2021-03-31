@@ -17,6 +17,16 @@ export function only<T, K extends keyof T>(
   }, {} as T);
 }
 
+export function chunk<T = unknown>(array: T[] = [], size = 2) {
+  array = [...array];
+
+  const result = [];
+  while (array.length) {
+    result.push(array.splice(0, size));
+  }
+  return result;
+}
+
 // tired of googling this "bit" of code every time (pun intended)
 export function bit(value: number, bit: number) {
   return (value & (1 << bit)) !== 0;
