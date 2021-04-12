@@ -83,7 +83,7 @@ function stringifySelector(selector: Record<string, string | boolean>) {
     .join(",");
 }
 
-function tryParseJsonVeryHard<T = unknown>(json: string) {
+export function tryParseJsonVeryHard<T = unknown>(json: string) {
   let err: SyntaxError;
   try {
     return JSON.parse(json) as T;

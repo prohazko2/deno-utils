@@ -68,3 +68,36 @@ export async function exec(cmd: string | string[], stdin = "") {
 
   return new TextDecoder().decode(stdout).trim();
 }
+
+export async function* tail(cmd: string | string[], stdin = "") {
+  if (!Array.isArray(cmd)) {
+    cmd = cmd.split(" ");
+  }
+
+  const opts: Deno.RunOptions = {
+    stderr: "piped",
+    stdout: "piped",
+    cmd,
+  };
+
+  if (stdin) {
+    opts.stdin = "piped";
+  }
+
+  const p = Deno.run(opts);
+  if (stdin) {
+    const encoder = new TextEncoder();
+    await p.stdin!.write(encoder.encode(stdin));
+    p.stdin!.close();
+  }
+
+  for (;;) {
+    const buf = new Uint8Array(1024);
+    const n = await p.stdout?.read(buf);
+
+    const text = new TextDecoder().decode(buf);
+    yield text;
+  }
+
+  // TODO: handle errrors
+}
