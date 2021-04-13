@@ -26,6 +26,10 @@ TS port of great [bytes.js](https://github.com/visionmedia/bytes.js) from @tj
 
 There are many like it, but this one is mine
 
+## [time.ts](./time.ts)
+
+[date-fns](https://date-fns.org/) is cool, but 99% of `time` I only need these 7 consts and 2 fns 
+
 ## [node_http.ts](./node_http.ts)
 
 Minimal types for serverless runtimes that give access to raw `(req, res)`
