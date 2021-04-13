@@ -19,6 +19,39 @@ export class ExecError extends Error {
   }
 }
 
+async function waitForExit(cmd: string | string[], process: Deno.Process) {
+  if (!Array.isArray(cmd)) {
+    cmd = cmd.split(" ");
+  }
+
+  const [status, stdout, stderr] = await Promise.all([
+    process.status(),
+    process.output(),
+    process.stderrOutput(),
+  ]);
+  process.close();
+
+  if (!status.success) {
+    let msg = `process '${cmd.join(" ")}' exited with code ${status.code}`;
+    const stdoutText = new TextDecoder().decode(stdout);
+    const stderrText = new TextDecoder().decode(stderr);
+    const text = (stdoutText || stderrText).trim();
+    if (text) {
+      msg = `${msg}: ${text}`;
+    }
+    const err = new ExecError(msg);
+    err.code = status.code;
+    err.signal = status.signal;
+    err.text = text;
+    err.cmd = cmd;
+    err.stdout = stdoutText;
+    err.stderr = stderrText;
+    throw err;
+  }
+
+  return { status, stdout, stderr };
+}
+
 export async function exec(cmd: string | string[], stdin = "") {
   if (!Array.isArray(cmd)) {
     cmd = cmd.split(" ");
@@ -41,30 +74,7 @@ export async function exec(cmd: string | string[], stdin = "") {
     p.stdin!.close();
   }
 
-  const [status, stdout, stderr] = await Promise.all([
-    p.status(),
-    p.output(),
-    p.stderrOutput(),
-  ]);
-  p.close();
-
-  if (!status.success) {
-    let msg = `process '${cmd.join(" ")}' exited with code ${status.code}`;
-    const stdoutText = new TextDecoder().decode(stdout);
-    const stderrText = new TextDecoder().decode(stderr);
-    const text = (stdoutText || stderrText).trim();
-    if (text) {
-      msg = `${msg}: ${text}`;
-    }
-    const err = new ExecError(msg);
-    err.code = status.code;
-    err.signal = status.signal;
-    err.text = text;
-    err.cmd = cmd;
-    err.stdout = stdoutText;
-    err.stderr = stderrText;
-    throw err;
-  }
+  const { stdout } = await waitForExit(cmd, p);
 
   return new TextDecoder().decode(stdout).trim();
 }
@@ -92,12 +102,16 @@ export async function* tail(cmd: string | string[], stdin = "") {
   }
 
   for (;;) {
-    const buf = new Uint8Array(1024);
+    const buf = new Uint8Array(4096);
     const n = await p.stdout?.read(buf);
+
+    if (n === null || n === undefined) {
+      break;
+    }
 
     const text = new TextDecoder().decode(buf);
     yield text;
   }
 
-  // TODO: handle errrors
+  await waitForExit(cmd, p);
 }
