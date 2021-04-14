@@ -79,7 +79,11 @@ export async function exec(cmd: string | string[], stdin = "") {
   return new TextDecoder().decode(stdout).trim();
 }
 
-export async function* tail(cmd: string | string[], stdin = "") {
+export type TailOptions = {
+  fromStderr: boolean;
+};
+
+export async function* tail(cmd: string | string[], _opts?: TailOptions) {
   if (!Array.isArray(cmd)) {
     cmd = cmd.split(" ");
   }
@@ -90,26 +94,22 @@ export async function* tail(cmd: string | string[], stdin = "") {
     cmd,
   };
 
-  if (stdin) {
-    opts.stdin = "piped";
-  }
-
   const p = Deno.run(opts);
-  if (stdin) {
-    const encoder = new TextEncoder();
-    await p.stdin!.write(encoder.encode(stdin));
-    p.stdin!.close();
+  let s = p.stdout!;
+
+  if (_opts?.fromStderr) {
+    s = p.stderr!;
   }
 
   for (;;) {
     const buf = new Uint8Array(4096);
-    const n = await p.stdout?.read(buf);
+    const n = await s.read(buf);
 
     if (n === null || n === undefined) {
       break;
     }
 
-    const text = new TextDecoder().decode(buf);
+    const text = new TextDecoder().decode(buf.slice(0, n));
     yield text;
   }
 
