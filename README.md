@@ -22,6 +22,10 @@ Very cool function to access object properies in type-safe manner stolen from
 
 TS port of great [bytes.js](https://github.com/visionmedia/bytes.js) from @tj
 
+## [hex.ts](./hex.ts)
+
+Old hexdump utility ported directly from C
+
 ## [exec.ts](./exec.ts)
 
 There are many like it, but this one is mine
