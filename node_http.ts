@@ -1,6 +1,9 @@
+declare var require: any;
+
 /* real world headers values may be `string | string[]`, 
     but we just hope we never encounter them */
 export type Headers = Record<string, string>;
+
 
 export type Stream = {
   on<T = unknown>(event: string, listener: (data: T) => void): void;
@@ -24,6 +27,70 @@ export type Response = Stream & {
   write(data: string): void;
   end(data?: string): void;
 };
+
+export type RequestOptions<T = unknown> = {
+  url: URL | string;
+  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  headers?: Headers;
+  body?: T;
+};
+
+export function sendJson<Q = unknown, S = unknown>(
+  opts: RequestOptions<Q>
+): Promise<S> {
+  //const require = (globalThis as any)["require"];
+
+  const { protocol, hostname, port, pathname, search } = new URL(
+    opts.url.toString()
+  );
+  const proto = protocol === "https:" ? require("https") : require("http");
+
+  const options = {
+    method: "GET",
+    host: hostname,
+    port: +port,
+    path: `${pathname}${search}`,
+    ...opts,
+  };
+
+  if (!port) {
+    options.port = protocol === "https:" ? 443 : 80;
+  }
+
+  return new Promise((resolve, reject) => {
+    const req = proto.request(
+      options,
+      (res: Stream & { statusCode: number }) => {
+        let resp = "";
+        res.on("data", (chunk: string) => (resp += chunk.toString()));
+        res.on("end", () => {
+          try {
+            const json = JSON.parse(resp);
+            if (res.statusCode >= 400) {
+              return reject(new Error(resp));
+              //return reject(ApiError.fromJson(opts, json, res.statusCode));
+            }
+            resolve(json);
+          } catch (err) {
+            console.log(resp);
+            reject(err);
+          }
+        });
+      }
+    );
+
+    req.on("error", (err: unknown) => reject(err));
+
+    if (opts.body) {
+      let send = opts.body as any;
+      if (typeof send === "object") {
+        send = JSON.stringify(opts.body);
+      }
+      req.write(send);
+    }
+    req.end();
+  });
+}
 
 export function readJson<T = unknown>(req: Request): Promise<T> {
   return new Promise((resolve, reject) => {
