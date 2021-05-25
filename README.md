@@ -14,8 +14,8 @@ You can also use them.
 ```
 
 
-- [get.ts](./get.ts) -  Very cool function to access object properies in type-safe manner stolen from
-[awesome-template-literal-types](https://github.com/ghoullier/awesome-template-literal-types#dot-notation-string-type-safe)
+- [get.ts](./get.ts) -  Very cool function to access object properies in type-safe manner  
+stolen from [awesome-template-literal-types](https://github.com/ghoullier/awesome-template-literal-types#dot-notation-string-type-safe)
 - [bytes.ts](./bytes.ts) - TS port of great [bytes.js](https://github.com/visionmedia/bytes.js) from @tj
 - [hex.ts](./hex.ts) - Old hexdump utility ported directly from C
 - [exec.ts](./exec.ts) - There are many like it, but this one is mine
