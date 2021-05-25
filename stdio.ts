@@ -1,3 +1,6 @@
+/* Deno already has similar `prompt` function inherited from DOM API
+   but this one async and handles Ctrl+D  */
+
 export async function prompt(q = "") {
   const buf = new Uint8Array(1024);
 
