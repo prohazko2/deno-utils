@@ -4,7 +4,6 @@ declare var require: any;
     but we just hope we never encounter them */
 export type Headers = Record<string, string>;
 
-
 export type Stream = {
   on<T = unknown>(event: string, listener: (data: T) => void): void;
   on(event: string, listener: () => void): void;
@@ -64,6 +63,17 @@ export function sendJson<Q = unknown, S = unknown>(
         let resp = "";
         res.on("data", (chunk: string) => (resp += chunk.toString()));
         res.on("end", () => {
+          if (resp.startsWith("<html>")) {
+            let [, title = "Unknown html errror"] =
+              /<title>(.*?)<\/title>/gi.exec(resp) || [];
+            reject(
+              new Error(
+                `${
+                  options.method
+                } ${opts.url.toString()} returned html with title: ${title}`
+              )
+            );
+          }
           try {
             const json = JSON.parse(resp);
             if (res.statusCode >= 400) {

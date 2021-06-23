@@ -80,7 +80,8 @@ export async function exec(cmd: string | string[], stdin = "") {
 }
 
 export type TailOptions = {
-  fromStderr: boolean;
+  fromStderr?: boolean;
+  stdin?: string;
 };
 
 export async function* tail(cmd: string | string[], _opts?: TailOptions) {
@@ -94,11 +95,21 @@ export async function* tail(cmd: string | string[], _opts?: TailOptions) {
     cmd,
   };
 
+  if (_opts?.stdin) {
+    opts.stdin = "piped";
+  }
+
   const p = Deno.run(opts);
   let s = p.stdout!;
 
   if (_opts?.fromStderr) {
     s = p.stderr!;
+  }
+
+  if (_opts?.stdin) {
+    const encoder = new TextEncoder();
+    await p.stdin!.write(encoder.encode(_opts?.stdin));
+    p.stdin!.close();
   }
 
   for (;;) {

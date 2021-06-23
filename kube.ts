@@ -22,7 +22,7 @@ import type {
   ServiceList,
 } from "https://deno.land/x/kubernetes_apis@v0.3.0/builtin/core@v1/mod.ts";
 
-import type { Deployment } from "https://deno.land/x/kubernetes_apis@v0.3.0/builtin/apps@v1/mod.ts";
+import type { Deployment, DeploymentList } from "https://deno.land/x/kubernetes_apis@v0.3.0/builtin/apps@v1/mod.ts";
 
 export type { ConfigMap, Deployment, Node, Pod, Secret, Service };
 
@@ -34,6 +34,12 @@ export type Opts = Partial<{
   namespace: string;
   labels: Record<string, string | boolean>;
 }>;
+
+export type PatchOp<T = unknown> = {
+  op: string;
+  path: string | string[];
+  value: T
+}
 
 // @TODO: try later with jsonpath
 //  > kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}'
@@ -65,6 +71,10 @@ export function getPods(opts?: Opts): Promise<Pod[]> {
 
 export function getServices(opts?: Opts): Promise<Service[]> {
   return _ctl<ServiceList>(`get services`, opts).then(({ items }) => items);
+}
+
+export function getDeployments(opts?: Opts): Promise<Deployment[]> {
+  return _ctl<DeploymentList>(`get deployments`, opts).then(({ items }) => items);
 }
 
 function stringifySelector(selector: Record<string, string | boolean>) {
@@ -147,4 +157,28 @@ export async function applyResources(yamls: string) {
     .split("\n")
     .filter((x) => !!x)
     .map(parseApplyResourceStaus);
+}
+
+function normalizePathchPath(path: string | string[]) {
+  if (Array.isArray(path)) {
+    path = path.join("/");
+  }
+  if (!path.startsWith("/")) {
+    path = `/${path}`;
+  }
+  return path;
+}
+
+export function patchResource(
+  resource: string,
+  patches: PatchOp[],
+  opts?: Opts
+) {
+  patches = patches.map((patch) => ({
+    ...patch,
+    path: normalizePathchPath(patch.path)
+  }));
+
+  const cmd = `patch ${resource} --type=json -p=${JSON.stringify(patches)}`;
+  return _ctl(cmd, opts);
 }
