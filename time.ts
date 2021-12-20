@@ -22,3 +22,13 @@ export function endOfDay(d?: MaybeDate) {
   date.setHours(...DAY_END);
   return date;
 }
+
+export function isoDate(d?: MaybeDate) {
+  const date = new Date(d || Date.now());
+  return date.toISOString().split('T')[0];
+}
+
+export function isoTime(d?: MaybeDate) {
+  const date = new Date(d || Date.now());
+  return date.toISOString().split('T')[1].split('.')[0];
+}

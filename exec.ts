@@ -52,22 +52,27 @@ async function waitForExit(cmd: string | string[], process: Deno.Process) {
   return { status, stdout, stderr };
 }
 
-export async function exec(cmd: string | string[], stdin = "") {
+export async function exec(
+  cmd: string | string[],
+  stdin = "",
+  opts?: Partial<Deno.RunOptions>
+) {
   if (!Array.isArray(cmd)) {
-    cmd = cmd.split(" ");
+    cmd = cmd.split(" ").filter((x) => !!x);
   }
 
-  const opts: Deno.RunOptions = {
+  opts = {
     stderr: "piped",
     stdout: "piped",
     cmd,
+    ...(opts || {}),
   };
 
   if (stdin) {
     opts.stdin = "piped";
   }
 
-  const p = Deno.run(opts);
+  const p = Deno.run(opts as Deno.RunOptions);
   if (stdin) {
     const encoder = new TextEncoder();
     await p.stdin!.write(encoder.encode(stdin));
